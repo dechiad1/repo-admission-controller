@@ -23,7 +23,8 @@ func handleAdmission(data []byte) *v1beta1.AdmissionReview {
 	pod := &v1.Pod{}
 	err = json.Unmarshal(raw, pod)
 	if err != nil {
-		panic(err)
+		log.Println("invalid pod spec")
+		return nil
 	}
 
 	reviewStatus := v1beta1.AdmissionResponse{
@@ -36,7 +37,7 @@ func handleAdmission(data []byte) *v1beta1.AdmissionReview {
 		if !strings.Contains(container.Image, "dechiada/") {
 			reviewStatus.Allowed = false
 			reviewStatus.Result = &metav1.Status {
-				Reason: "can only pull registries in danny's repo",
+				Reason: "can only pull registries in the defined repo",
 			}
 			log.Println("Blocking " + container.Image)
 		} else {
@@ -54,20 +55,28 @@ func serve(w http.ResponseWriter, r *http.Request) {
 
 		if r.Body != nil {
 			bodyBytes,_ = ioutil.ReadAll(r.Body)
+			
+			review := handleAdmission(bodyBytes)
+			if review == nil {
+				w.Write([]byte("No request body - body must contain valid kube pod creation spec"))
+			} else {
+				resp, err := json.Marshal(review)
+				if err != nil {
+					log.Println("marshalling admission review results into a response")
+					panic(err)
+				}
+		
+				if _, err := w.Write(resp); err != nil {
+					log.Println("writing response failed")
+					panic(err)
+				}
+			}
 		} else {
 			//log this! body should always be present
 			log.Println("no body!")
+			w.Write([]byte("No request body - body must contain valid kube pod creation spec"))
 		}
 
-		review := handleAdmission(bodyBytes)
-		resp, err := json.Marshal(review)
-		if err != nil {
-			panic(err)
-		}
-
-		if _, err := w.Write(resp); err != nil {
-			panic(err)
-		}
 }
 
 func main() {

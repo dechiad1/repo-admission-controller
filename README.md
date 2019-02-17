@@ -14,7 +14,7 @@ In order to deploy this to a kube cluster, one must do the following:
       * cat [cert name].crt | openssl enc -base64 -A
 5. Add the encoded contents to the ValidatingWebhookConfiguration yaml file's caBundle attribute
 6. Create a kube secret containing both the key and the cert - where the key shall act as the name of the file in the mounted directory
-      * kubectl-eks -n [namespace] create secret generic [secret name] --from-file=[contained key name]=[key name] --from-file=[cert name]=[contained cert name]
+      * kubectl-eks -n [namespace] create secret generic [secret name] --from-file=[key name].key=[relative path to key].key --from-file=[cert name].crt=[relative path to cert].crt
 7. Update the volume mount and volumes portions of the web app's yaml to accurately reflect the secret  
 8. Deploy, woo!
 
