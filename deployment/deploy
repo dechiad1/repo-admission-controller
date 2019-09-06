@@ -61,4 +61,6 @@ EOF
 
 kubectl apply -f webhook-configuration.yaml
 
+rm -f webhook-configuration.yaml
+
 rm -rf certs
