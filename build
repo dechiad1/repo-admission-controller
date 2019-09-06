@@ -1,0 +1,11 @@
+#!/bin/bash
+
+if [ -z "$1" ]; then
+  reponame="registry1.lab-1.cloud.local"
+else 
+  reponame=$1 
+fi
+
+VERSION=$(cat VERSION)
+docker build -t $reponame/repovac:${VERSION} .
+docker push $reponame/repovac:${VERSION}

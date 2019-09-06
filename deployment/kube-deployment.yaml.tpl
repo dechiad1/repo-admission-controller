@@ -2,41 +2,37 @@
 apiVersion: v1
 kind: Service
 metadata: 
-  name: danny-ac
-  namespace: kube-system
+  name: repo-whitelist
+  namespace: repo-whitelist
   labels:
-    name: danny-ac
+    name: repo-whitelist
 spec:
   ports:
   -  name: webhook
      port: 443
      targetPort: 8080
   selector:
-    name: danny-ac
+    name: repo-whitelist
 ---
 apiVersion: apps/v1beta1
 kind: Deployment
 metadata: 
-  name: danny-ac
-  namespace: kube-system
+  name: repo-whitelist
+  namespace: repo-whitelist
   labels: 
-    name: danny-ac
+    name: repo-whitelist
 spec:
   replicas: 1
   template:
     metadata:
-      name: danny-ac
+      name: repo-whitelist
       labels:
-        name: danny-ac
+        name: repo-whitelist
     spec: 
       containers:
         - name: webhook
-          image: dechiada/personal-repo-ac:latest
+          image: registry1.lab-1.cloud.local/repovac:${VERSION}
           imagePullPolicy: Always
-          resources:
-            requests:
-              memory: 100Mi
-              cpu: 300m
           ports:
             - name: endpoint
               containerPort: 8080
@@ -49,4 +45,4 @@ spec:
       volumes: 
         - name: webhook-ca
           secret:
-            secretName: danny-kube-cas
+            secretName: repo-whitelist
