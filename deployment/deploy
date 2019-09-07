@@ -33,7 +33,6 @@ else
 fi
 sed -e "s|\${VERSION}|${VERSION}|g" -e "s|\${REPONAME}|${REPONAME}|g" kube-deployment.yaml.tpl | kubectl apply -f -
 
-
 # Get the ca cert, create the webhook configuration and apply
 CA_BUNDLE=$(cat ./certs/ca.crt | base64 | tr -d '\n')
 sed -e "s|\${CA_BUNDLE}|${CA_BUNDLE}|g" webhook-configuration.yaml.tpl | kubectl apply -f -
