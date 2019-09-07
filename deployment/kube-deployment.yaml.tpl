@@ -31,7 +31,7 @@ spec:
     spec: 
       containers:
         - name: webhook
-          image: registry1.lab-1.cloud.local/repovac:${VERSION}
+          image: ${REPONAME}/repovac:${VERSION}
           imagePullPolicy: Always
           ports:
             - name: endpoint

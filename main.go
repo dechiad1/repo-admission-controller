@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"flag"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -34,7 +35,7 @@ func handleAdmission(data []byte) *v1beta1.AdmissionReview {
 		},
 	}
 	for _, container := range pod.Spec.Containers {
-		if !strings.Contains(container.Image, "registry1.lab-1.cloud.local/") {
+		if !strings.Contains(container.Image, flag.Lookup("saferepo").Value.(flag.Getter).Get().(string)+"/") {
 			reviewStatus.Allowed = false
 			reviewStatus.Result = &metav1.Status{
 				Reason: "can only pull registries in the defined repo",
@@ -50,6 +51,7 @@ func handleAdmission(data []byte) *v1beta1.AdmissionReview {
 }
 
 func serve(w http.ResponseWriter, r *http.Request) {
+
 	log.Printf("request from %s, %s", r.Host, r.URL.Path)
 	var bodyBytes []byte
 
@@ -79,7 +81,15 @@ func serve(w http.ResponseWriter, r *http.Request) {
 
 }
 
+func parseFlags() {
+	var saferepo string
+	flag.StringVar(&saferepo, "saferepo", "registry1.lab-1.cloud.local", "Repository to white list")
+	flag.Parse()
+}
+
 func main() {
+	parseFlags()
+	log.Println("Conttroll starting and allowing images from registry: " + flag.Lookup("saferepo").Value.(flag.Getter).Get().(string))
 	http.HandleFunc("/", serve)
 
 	cert := "/etc/certs/tls.crt"
