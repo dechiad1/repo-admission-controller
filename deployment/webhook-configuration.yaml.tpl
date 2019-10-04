@@ -1,10 +1,10 @@
 ---
-apiVersion: admissionregistration.k8s.io/v1beta1
 kind: ValidatingWebhookConfiguration
+apiVersion: admissionregistration.k8s.io/v1beta1
 metadata:
-  name: danny-ac
+  name: repo-whitelist-webhook
 webhooks:
-  - name: danny-ac.dechiad1.github.com
+  - name: repo-whitelist.symettrical.dev
     rules:
       - apiGroups:
           - ""
@@ -16,8 +16,7 @@ webhooks:
           - "pods"
     failurePolicy: Fail
     clientConfig:
-      service: 
-        name: danny-ac
-        namespace: kube-system
-        path: /
       caBundle: ${CA_BUNDLE}
+      service:
+        namespace: repo-whitelist
+        name: repo-whitelist

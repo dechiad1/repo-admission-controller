@@ -1,0 +1,41 @@
+#!/bin/bash
+
+# Create the namespace where we will deploy into
+kubectl apply -f namespace.yaml
+
+# Create a directory, move into, generate the ca cert and keypair for the webhook, create a secret storing the keypair
+mkdir certs
+pushd certs
+cat >server.conf <<EOF
+[req]
+req_extensions = v3_req
+distinguished_name = req_distinguished_name
+[req_distinguished_name]
+[ v3_req ]
+basicConstraints = CA:FALSE
+keyUsage = nonRepudiation, digitalSignature, keyEncipherment
+extendedKeyUsage = clientAuth, serverAuth
+EOF
+openssl genrsa -out ca.key 2048
+openssl req -x509 -new -nodes -key ca.key -days 100000 -out ca.crt -subj "/CN=repo-whitelist_admission_ca"
+openssl genrsa -out server.key 2048
+openssl req -new -key server.key -out server.csr -subj "/CN=repo-whitelist.repo-whitelist.svc" -config server.conf
+openssl x509 -req -in server.csr -CA ca.crt -CAkey ca.key -CAcreateserial -out server.crt -days 100000 -extensions v3_req -extfile server.conf
+kubectl -n repo-whitelist create secret tls repo-whitelist --cert=server.crt --key=server.key
+popd
+
+# Get the Version, repository name, create the deployment and apply.
+VERSION=$(cat ../VERSION)
+if [ -z "$1" ]; then
+  REPONAME="registry1.lab-1.cloud.local"
+else
+  REPONAME=$1
+fi
+sed -e "s|\${VERSION}|${VERSION}|g" -e "s|\${REPONAME}|${REPONAME}|g" kube-deployment.yaml.tpl | kubectl apply -f -
+
+# Get the ca cert, create the webhook configuration and apply
+CA_BUNDLE=$(cat ./certs/ca.crt | base64 | tr -d '\n')
+sed -e "s|\${CA_BUNDLE}|${CA_BUNDLE}|g" webhook-configuration.yaml.tpl | kubectl apply -f -
+
+# Clean Up
+rm -rf certs

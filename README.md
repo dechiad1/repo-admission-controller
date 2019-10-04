@@ -1,25 +1,20 @@
-# Dynamic Webhook Admission Controller
+# Validating Admission Controller Sample
 
-This Repo contains a webapp, dockerfile and kube yaml files that will deploy an object of kind ValidatingWebhookConfiguration and its associated web application to a kube cluster.  
+This project contains a webapp, Dockerfile to build it and the needed scripts/yaml to deploy the controller and the ValidatingWebhookConfiguration into a Kubernetes Cluster.  This controller only allows pods to be deployed that come from a specific container repository.  
 
-## Kube Cluster
+## Usage
 
-In order to deploy this to a kube cluster, one must do the following:
-1. clone the repo 
-2. build the image 
-3. create the ca bundle
-      * openssl req -newkey rsa:2048 -nodes -keyout [keyname].key -out [csr name].csr
-      * openssl x509 -signkey [keyname].key -in [csr name].csr -req -days 365 -out [cert name].crt
-4. Get the base64 coded contents of the authoritative CA
-      * cat [cert name].crt | openssl enc -base64 -A
-5. Add the encoded contents to the ValidatingWebhookConfiguration yaml file's caBundle attribute
-6. Create a kube secret containing both the key and the cert - where the key shall act as the name of the file in the mounted directory
-      * kubectl-eks -n [namespace] create secret generic [secret name] --from-file=[key name].key=[relative path to key].key --from-file=[cert name].crt=[relative path to cert].crt
-7. Update the volume mount and volumes portions of the web app's yaml to accurately reflect the secret  
-8. Deploy, woo!
-
-
-## Run Locally 
-In main.go -
-1. Point to the ca files on the local directory 
-2. Have the server listen on 127.0.0.1 instead of 0.0.0.0
+In order to deploy this to a Kubernetes cluster, one must do the following:
+1. Clone the Repository
+2. Build and publish the controller images
+   ```
+   ./build (tags and pushed to the default registry of registry1.lab-1.cloud.local)
+   ./build [registry-name] (option to specifcy the registry you want to tag and push to).
+   ```
+3. Deploy the controller and ValidationWebhookConfiguration into a Kubernetes Cluster
+   ```
+    cd deployments
+    ./deploy (used the default registry of registry1.lab-1.cloud.local to pull the image from)
+    ./deploy [registry-name] (option to specify the registry you want to pull the image from)
+    ```
+    You can add an argument of -saferepo [reponame] to the kube deployment template if you want have the controller allow from a specific repository.
