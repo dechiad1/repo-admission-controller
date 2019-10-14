@@ -1,0 +1,13 @@
+#!/bin/bash
+
+if [ -z "$1" ]; then
+  REPONAME="registry1.lab-1.cloud.local"
+else
+  REPONAME=$1
+fi
+
+VERSION=$(cat VERSION)
+GO111MODULE=on CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o app
+docker build -f Dockerfile-local -t $REPONAME/repovac:${VERSION} .
+docker push $REPONAME/repovac:${VERSION}
+rm app

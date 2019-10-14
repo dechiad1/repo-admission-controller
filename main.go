@@ -71,6 +71,7 @@ func serve(w http.ResponseWriter, r *http.Request) {
 
 			if _, err := w.Write(resp); err != nil {
 				log.Println("Writing response failed")
+				log.Println("writing response failed")
 				panic(err)
 			}
 		}
